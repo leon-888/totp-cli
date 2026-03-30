@@ -15,8 +15,9 @@ description: "Use when an AI agent needs to generate a current TOTP code from a 
 1. Prefer environment variables for secrets when possible.
 2. Use `totp-agent --quiet` when another command only needs the code.
 3. Use `totp-agent --json` when the next step needs expiry metadata.
-4. If a user shares an `otpauth://totp/...` URL, pass it with `--otpauth`.
-5. Do not print or store secrets unless the user explicitly asks you to.
+4. By default, if a code has less than 5 seconds left, `totp-agent` waits 5.1 seconds and returns a fresh code.
+5. If a user shares an `otpauth://totp/...` URL, pass it with `--otpauth`.
+6. Do not print or store secrets unless the user explicitly asks you to.
 
 ## Commands
 
@@ -35,9 +36,15 @@ Read from an otpauth URL:
 totp-agent --otpauth 'otpauth://totp/Acme:bot?secret=JBSWY3DPEHPK3PXP&issuer=Acme' --json
 ```
 
+Disable the default fresh-code wait:
+```bash
+totp-agent --secret-env TOTP_SECRET --quiet --no-wait
+```
+
 ## Output modes
 - `--quiet`: prints only the token
 - `--json`: prints `token`, `expiresAt`, `remainingSeconds`, `period`, `digits`, `algorithm`
+- `--no-wait`: returns the current code immediately, even if it is about to expire
 
 ## Safety
 - Prefer `--secret-env` or stdin over putting secrets directly on the command line.

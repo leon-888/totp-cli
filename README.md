@@ -8,6 +8,7 @@
 - 支持全局安装后直接调用
 - 支持 `secret`、`otpauth://`、环境变量、`stdin`
 - 支持纯 token 输出和 JSON 输出，方便 agent 消费
+- 默认会避开仅剩不到 5 秒有效期的 code
 - 内置一个 Codex skill，可一键安装到本地 skills 目录
 
 ## 安装
@@ -80,6 +81,14 @@ totp-agent --secret JBSWY3DPEHPK3PXP
 totp-agent --secret JBSWY3DPEHPK3PXP --quiet
 ```
 
+默认情况下，如果当前 code 剩余有效时间少于 5 秒，CLI 会先等待 5.1 秒，再返回新的一枚 code，避免 agent 拿到即将过期的值。
+
+### 2.1 禁用默认等待
+
+```bash
+totp-agent --secret JBSWY3DPEHPK3PXP --quiet --no-wait
+```
+
 ### 3. 输出 JSON
 
 ```bash
@@ -128,6 +137,7 @@ totp-agent --otpauth 'otpauth://totp/Acme:bot?secret=JBSWY3DPEHPK3PXP&issuer=Acm
     --period <seconds>      TOTP period, default 30
     --algorithm <name>      SHA1, SHA256, or SHA512
     --timestamp <ms>        Override current Unix timestamp in milliseconds
+    --no-wait               Disable the default fresh-code wait behavior
     --json                  Emit machine-readable JSON
 -q, --quiet                 Emit token only
 -h, --help                  Show help
@@ -144,6 +154,8 @@ totp-agent --secret-env TOTP_SECRET --json
 ```
 
 如果你不想把 secret 放进 shell history，推荐环境变量或者 stdin。
+
+默认等待新 code 的行为对 agent 很有用，因为它能减少“刚拿到 code 就过期”的情况；如果你明确想拿当前这一秒的 code，再加 `--no-wait`。
 
 如果这个 skill 已经安装，其他 agent 后续可以直接在任务里使用 `totp-agent` skill，让它优先走环境变量或 stdin 生成 TOTP。
 

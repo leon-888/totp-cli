@@ -4,6 +4,11 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { generateHotp, generateTotp, parseOtpauthUrl } = require("../lib/totp");
+const {
+  FRESH_CODE_WAIT_MS,
+  generateCurrentTotp,
+  parseArgs
+} = require("../lib/cli");
 
 test("generateHotp matches RFC 4226 test values", () => {
   const secret = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";
@@ -52,4 +57,68 @@ test("parseOtpauthUrl extracts label and issuer", () => {
     issuer: "Acme",
     label: "Acme:bot"
   });
+});
+
+test("parseArgs enables fresh-code waiting by default and allows disabling it", () => {
+  assert.equal(parseArgs(["--secret", "ABC"]).waitForFreshCode, true);
+  assert.equal(parseArgs(["--secret", "ABC", "--no-wait"]).waitForFreshCode, false);
+});
+
+test("generateCurrentTotp waits for a fresh code when the current code is about to expire", async () => {
+  const secret = "JBSWY3DPEHPK3PXP";
+  const calls = [];
+  let sleepCalls = 0;
+  const timestamps = [56000, 61000];
+
+  const result = await generateCurrentTotp(
+    { secret },
+    {
+      algorithm: "SHA1",
+      digits: 6,
+      period: 30,
+      waitForFreshCode: true
+    },
+    {
+      now() {
+        const value = timestamps[calls.length];
+        calls.push(value);
+        return value;
+      },
+      async sleep(ms) {
+        sleepCalls += 1;
+        assert.equal(ms, FRESH_CODE_WAIT_MS);
+      }
+    }
+  );
+
+  assert.equal(sleepCalls, 1);
+  assert.equal(calls.length, 2);
+  assert.equal(result.token, "602287");
+  assert.equal(result.remainingSeconds, 29);
+});
+
+test("generateCurrentTotp skips waiting when --no-wait is used", async () => {
+  const secret = "JBSWY3DPEHPK3PXP";
+  let sleepCalled = false;
+
+  const result = await generateCurrentTotp(
+    { secret },
+    {
+      algorithm: "SHA1",
+      digits: 6,
+      period: 30,
+      waitForFreshCode: false
+    },
+    {
+      now() {
+        return 56000;
+      },
+      async sleep() {
+        sleepCalled = true;
+      }
+    }
+  );
+
+  assert.equal(sleepCalled, false);
+  assert.equal(result.remainingSeconds, 4);
 });
