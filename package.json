@@ -1,0 +1,46 @@
+{
+  "name": "@leonhart538/totp-cli",
+  "version": "0.1.1",
+  "description": "AI-agent-friendly TOTP CLI for npm global installs.",
+  "license": "MIT",
+  "author": "leon-888",
+  "homepage": "https://github.com/leon-888/totp-cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/leon-888/totp-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leon-888/totp-cli/issues"
+  },
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "totp-agent": "./bin/totp-agent.js",
+    "totp-agent-install-skill": "./bin/totp-agent-install-skill.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "scripts",
+    "skill",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "totp",
+    "otp",
+    "2fa",
+    "cli",
+    "ai-agent",
+    "otpauth"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --test && npm pack --dry-run"
+  }
+}
